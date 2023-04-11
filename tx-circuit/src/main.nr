@@ -39,6 +39,7 @@ fn main(
       let pubkey: Field = key::deriv_pubkey(in_privkeys[i]);
       constrain std::hash::pedersen([in_amounts[i], pubkey])[0] == in_commits[i];
       constrain std::hash::pedersen([in_commits[i], in_privkeys[i]])[0] == nullifiers[i];
+      // Only add amount if not decoy input.
       total_in += in_amounts[i];
     } else {
       // Ensure that decoy nullifiers are constructed differently to mitigate collisions.
@@ -51,6 +52,7 @@ fn main(
   for i in 0..MAX_IN_COUNT {
     if i as u8 < out_count {
       constrain std::hash::pedersen([out_amounts[i], out_pubkeys[i]])[0] == out_commits[i];
+      // Only add out amount if not decoy input.
       total_out += out_amounts[i];
     } else {
       // Ensure that decoy outputs are encoded differently so that it's not possible to spend.
@@ -59,6 +61,7 @@ fn main(
   }
 
   /// @dev `amount_delta` not constrained to be within "safe" range to allow for representing
-  /// negative values. Safety which will **need** to be done out-of-circuit.
+  /// negative values in p. Depending on withdraw implementation will need to be checked
+  /// out-of-circuit.
   constrain total_in == total_out + amount_delta;
 }
